@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصفحة الرئيسية - متجر خير العمدة</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <style>
+        /* إعدادات عامة */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            direction: rtl;
+        }
+
+        h1, h2, h3, p {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        /* الهيدر */
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+        }
+
+        .header .logo h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        /* شريط التنقل */
+        .nav-bar {
+            margin-top: 10px;
+            text-align: center; /* توسيط شريط التنقل */
+        }
+
+        .nav-bar a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+
+        .nav-bar a:hover {
+            color: #f4a261;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            text-align: center;
+            padding: 50px 15px;
+            background-color: #fff;
+        }
+
+        .main-content h2 {
+            font-size: 2.5rem;
+            color: #333;
+        }
+
+        .main-content p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .product-discovery {
+            margin-top: 30px;
+        }
+
+        .product-discovery h3 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #f4a261;
+        }
+
+        /* الفوتر */
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            margin-top: 50px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <h1>متجر خير العمدة</h1>
+        </div>
+        <nav class="nav-bar">
+            <a href="products.html">المنتجات</a>
+            <a href="cart.html">سلة المشتريات</a>
+            <a href="complete-order.html">إتمام الطلب</a>
+        </nav>
+    </header>
+
+    <section class="main-content">
+        <h2>مرحباً بك في متجرنا!</h2>
+        <p>تسوق الآن واحصل على منتجات طازجة وشهية!</p>
+
+        <div class="product-discovery">
+            <h3>اكتشف منتجاتنا</h3>
+            <a href="products.html" class="btn">عرض المنتجات</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>حقوق الطبع والنشر © 2024 متجر خير العمدة</p>
+    </footer>
+
+    <script>
+        // توليد UID فريد للمستخدم إذا لم يكن موجودًا في localStorage
+        let userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = uuid.v4();  // توليد UUID فريد
+            localStorage.setItem('userId', userId);  // حفظ الـ UID في localStorage
+        }
+    </script>
+</body>
+</html>

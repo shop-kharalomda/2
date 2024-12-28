@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة المشتريات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            list-style: none;
+            padding: 0;
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .nav-bar a:hover {
+            background-color: #555;
+            border-radius: 5px;
+        }
+        .cart-items {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cart-item {
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .cart-item h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .cart-item p {
+            margin: 5px 0;
+        }
+        .cart-item .remove-btn {
+            padding: 5px 10px;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .cart-item .remove-btn:hover {
+            background-color: #c82333;
+        }
+        .total-price {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .checkout-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .checkout-btn:hover {
+            background-color: #0056b3;
+        }
+        .alert {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>سلة المشتريات</h1>
+        <nav>
+            <ul class="nav-bar">
+                <li><a href="products.html">المنتجات</a></li>
+                <li><a href="complete-order.html">إتمام الطلب</a></li>
+            <li><a href="index.html">الصفحة الرئسية</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="cart-items" id="cartItems">
+        <h2>منتجات السلة</h2>
+        <!-- سيتم ملء هذه المنطقة بعناصر السلة عبر جافا سكربت -->
+    </section>
+
+    <p id="totalPrice" class="total-price">المجموع الكلي: 0 جنيه</p>
+    <p id="emptyCartAlert" class="alert" style="display: none;">سلتك فارغة. يرجى إضافة منتجات.</p>
+
+    <button class="checkout-btn" id="checkoutBtn">إتمام الطلب</button>
+
+    <script type="module">
+        window.onload = displayCart;
+
+        function displayCart() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartItemsContainer = document.getElementById('cartItems');
+            const totalPriceElement = document.getElementById('totalPrice');
+            const emptyCartAlert = document.getElementById('emptyCartAlert');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            let totalPrice = 0;
+
+            cartItemsContainer.innerHTML = ''; // مسح العناصر السابقة في السلة
+
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p>سلة المشتريات فارغة.</p>';
+                totalPriceElement.textContent = 'المجموع الكلي: 0 جنيه';
+                emptyCartAlert.style.display = 'block'; // إظهار رسالة سلة فارغة
+                checkoutBtn.disabled = true; // تعطيل زر إتمام الطلب
+                return;
+            } else {
+                emptyCartAlert.style.display = 'none'; // إخفاء رسالة السلة فارغة
+                checkoutBtn.disabled = false; // تمكين زر إتمام الطلب
+            }
+
+            cartItems.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('cart-item');
+                itemElement.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p>الكمية: ${item.quantity} كيلو</p>
+                    <p>السعر الفردي: ${item.price} جنيه</p>
+                    <p>السعر الكلي: ${item.totalPrice} جنيه</p>
+                    <button class="remove-btn" data-index="${index}">إزالة</button>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+                totalPrice += item.totalPrice;
+            });
+
+            totalPriceElement.textContent = `المجموع الكلي: ${totalPrice} جنيه`;
+
+            // إضافة وظيفة إزالة العنصر
+            const removeButtons = document.querySelectorAll('.remove-btn');
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removeItemFromCart(index);
+                });
+            });
+
+            // إضافة وظيفة زر إتمام الطلب
+            checkoutBtn.addEventListener('click', function() {
+                if (totalPrice > 0) {
+                    window.location.href = 'complete-order.html'; // الانتقال لصفحة إتمام الطلب
+                } else {
+                    alert("سلتك فارغة. يرجى إضافة منتجات.");
+                }
+            });
+        }
+
+        function removeItemFromCart(index) {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.splice(index, 1); // إزالة العنصر المحدد من السلة
+            localStorage.setItem('cart', JSON.stringify(cartItems)); // تحديث السلة في localStorage
+            displayCart(); // تحديث عرض السلة بعد إزالة العنصر
+        }
+    </script>
+
+</body>
+</html>

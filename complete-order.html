@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إتمام الطلب</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+        }
+        .nav-bar a:hover {
+            background-color: #555;
+        }
+        .checkout-form {
+            width: 80%;
+            max-width: 600px;
+            margin: 120px auto 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .checkout-form h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .checkout-form input,
+        .checkout-form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .checkout-form button {
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .checkout-form button:hover {
+            background-color: #555;
+        }
+        .cart-summary {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            margin-top: 20px;
+        }
+        .warning {
+            color: red;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        .alert-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>إتمام الطلب</h1>
+        <nav class="nav-bar">
+            <a href="products.html">المنتجات</a>
+            <a href="cart.html">سلة المشتريات</a>
+            <a href="index.html">الصفحة الرئسية</a>
+        </nav>
+    </header>
+
+    <!-- تنويه التوصيل -->
+    <div class="alert-message">
+        التوصيل داخل القاهرة فقط، يرجى إدخال عنوان من على الخريطة.
+    </div>
+
+    <section class="checkout-form">
+        <h2>معلومات العميل</h2>
+        <form id="checkoutForm">
+            <input type="text" id="name" placeholder="الاسم الكامل" required>
+            <input type="text" id="phone" placeholder="رقم الهاتف" required>
+            <input type="text" id="address" placeholder=" يرجي ادخال  العنوان من الخريطة" required readonly>
+            <button type="submit">إتمام الطلب</button>
+            <p id="warningMessage" class="warning" style="display:none;">يرجى اختيار موقعك على الخريطة قبل إتمام الطلب.</p>
+        </form>
+    </section>
+
+    <section class="cart-summary" id="cartSummary">
+        <h2>ملخص الطلب</h2>
+        <!-- سيتم ملء هذه المنطقة بملخص السلة عبر جافا سكربت -->
+    </section>
+
+    <div id="map"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCs7j4K_Ds1eWBWm_Kf2x5WoUXKcxXo1e4",
+            authDomain: "kokooo-243be.firebaseapp.com",
+            projectId: "kokooo-243be",
+            storageBucket: "kokooo-243be.firebasestorage.app",
+            messagingSenderId: "348661733475",
+            appId: "1:348661733475:web:e0c202f269a308bd0fc056",
+            measurementId: "G-9G479CQ2N7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let isLocationSelected = false;  // لتتبع ما إذا تم اختيار موقع
+
+        window.onload = () => {
+            displayCartSummary();
+            initializeMap();
+        };
+
+        function displayCartSummary() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartSummaryContainer = document.getElementById('cartSummary');
+
+            if (cartItems.length === 0) {
+                cartSummaryContainer.innerHTML = '<p>سلة المشتريات فارغة.</p>';
+                return;
+            }
+
+            let total = 0;
+            let cartSummaryHTML = '<ul>';
+            cartItems.forEach(item => {
+                cartSummaryHTML += `
+                    <li>${item.name} - ${item.quantity} كيلو: ${item.totalPrice} جنيه</li>
+                `;
+                total += item.totalPrice;
+            });
+            cartSummaryHTML += `</ul><h3>المجموع الكلي: ${total} جنيه</h3>`;
+            cartSummaryContainer.innerHTML = cartSummaryHTML;
+        }
+
+        let marker;
+
+        function initializeMap() {
+            const map = L.map('map').setView([31.2357, 30.0444], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            const geocoder = L.Control.Geocoder.nominatim();
+            L.Control.geocoder({
+                position: 'topright',
+                geocoder: geocoder
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                
+                // إضافة دبوس عند النقر على الخريطة
+                if (marker) {
+                    map.removeLayer(marker);  // إزالة الدبوس السابق
+                }
+                
+                marker = L.marker([lat, lng]).addTo(map);
+                marker.bindPopup(`<b>الإحداثيات:</b><br>Latitude: ${lat.toFixed(5)}<br>Longitude: ${lng.toFixed(5)}`).openPopup();
+
+                // تحديث الحقل "العنوان" بالإحداثيات
+                document.getElementById('address').value = `الإحداثيات: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                isLocationSelected = true;  // تم اختيار موقع
+            });
+        }
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+
+            if (!isLocationSelected) {
+                document.getElementById('warningMessage').style.display = 'block';
+                return;
+            }
+
+            if (cartItems.length === 0) {
+                alert('سلة المشتريات فارغة!');
+                return;
+            }
+
+            try {
+                const orderRef = await addDoc(collection(db, "orders"), {
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    items: cartItems,
+                    totalPrice: cartItems.reduce((sum, item) => sum + item.totalPrice, 0),
+                    date: new Date()
+                });
+
+                localStorage.removeItem('cart');
+
+                alert('تم إتمام الطلب بنجاح! رقم الطلب: ' + orderRef.id);
+                window.location.href = 'products.html';
+            } catch (error) {
+                console.error("خطأ في إتمام الطلب: ", error);
+                alert('حدث خطأ أثناء إتمام الطلب. الرجاء المحاولة لاحقاً.');
+            }
+        });
+    </script>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <footer class="footer">
+        <p>&copy; 2024 جميع الحقوق محفوظة</p>
+    </footer>
+</body>
+</html>

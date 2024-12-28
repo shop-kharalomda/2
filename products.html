@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض المنتجات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+        .nav-bar {
+            margin-top: 10px;
+            display: flex; /* استخدام flexbox لعرض العناصر في سطر واحد */
+            justify-content: center; /* محاذاة الروابط في المنتصف */
+            gap: 15px; /* المسافة بين الروابط */
+        }
+        .nav-bar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .nav-bar a:hover {
+            color: #f4a261;
+            background-color: #555; /* تغيير لون الخلفية عند التمرير */
+        }
+        .products-section {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .product-item {
+            width: 200px;
+            padding: 10px;
+            margin: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .product-item h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .product-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-item select {
+            width: 100%;
+            margin: 10px 0;
+            padding: 5px;
+        }
+        .product-item button {
+            padding: 5px 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .product-item button:hover {
+            background-color: #555;
+        }
+        @media (max-width: 600px) {
+            .product-item {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>عرض المنتجات</h1>
+        <nav class="nav-bar">
+            <a href="cart.html">سلة المشتريات</a>
+            <a href="complete-order.html">اتمام الطلب</a>
+            <a href="index.html">الصفحة الرئيسية</a>
+        </nav>
+    </header>
+
+    <section class="products-section" id="productsList">
+        <h2>المنتجات المتاحة</h2>
+        <!-- سيتم عرض المنتجات هنا -->
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCs7j4K_Ds1eWBWm_Kf2x5WoUXKcxXo1e4",
+            authDomain: "kokooo-243be.firebaseapp.com",
+            projectId: "kokooo-243be",
+            storageBucket: "kokooo-243be.firebasestorage.app",
+            messagingSenderId: "348661733475",
+            appId: "1:348661733475:web:e0c202f269a308bd0fc056",
+            measurementId: "G-9G479CQ2N7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.onload = displayProducts;
+
+        async function displayProducts() {
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = '';
+            const querySnapshot = await getDocs(collection(db, "products"));
+
+            querySnapshot.forEach((docSnap) => {
+                const product = docSnap.data();
+                const productItem = document.createElement('div');
+                productItem.classList.add('product-item');
+                productItem.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>سعر الكيلو: ${product.price} جنيه</p>
+                    ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ''}
+                    <select id="quantity_${docSnap.id}">
+                        <option value="0">اختر كمية</option>
+                        <option value="0.25">0.25 كيلو</option>
+                        <option value="0.5">0.5 كيلو</option>
+                        <option value="1">1 كيلو</option>
+                        <option value="1.5">1.5 كيلو</option>
+                        <option value="2">2 كيلو</option>
+                        <option value="3.25">3.25 كيلو</option>
+                        <option value="3.5">3.5 كيلو</option>
+                        <option value="4">4 كيلو</option>
+                        <option value="4.25">4.25 كيلو</option>
+                        <option value="4.5">4.5 كيلو</option>
+                        <option value="5">5 كيلو</option>
+                        <option value="5.25">5.25 كيلو</option>
+                        <option value="5.5">5.5 كيلو</option>
+                        <option value="6">6 كيلو</option>
+                        <option value="6.25">6.25 كيلو</option>
+                        <option value="6.5">6.5 كيلو</option>
+                        <option value="7">7 كيلو</option>
+                        <option value="7.25">7.25 كيلو</option>
+                        <option value="7.5">7.5 كيلو</option>
+                        <option value="8">8 كيلو</option>
+                        <option value="8.25">8.25 كيلو</option>
+                        <option value="8.5">8.5 كيلو</option>
+                        <option value="9">9 كيلو</option>
+                        <option value="9.25">9.25 كيلو</option>
+                        <option value="9.5">9.5 كيلو</option>
+                        <option value="10">10 كيلو</option>
+                    </select>
+                    <p id="totalPrice_${docSnap.id}">السعر الكلي: 0 جنيه</p>
+                    <button class="add-to-cart" data-id="${docSnap.id}" data-name="${product.name}" data-price="${product.price}">إضافة إلى السلة</button>
+                `;
+                productsList.appendChild(productItem);
+
+                const quantitySelect = document.getElementById(`quantity_${docSnap.id}`);
+                quantitySelect.addEventListener('change', function() {
+                    const quantity = parseFloat(this.value);
+                    const totalPrice = product.price * quantity;
+                    document.getElementById(`totalPrice_${docSnap.id}`).innerText = `السعر الكلي: ${totalPrice.toFixed(2)} جنيه`;
+                });
+            });
+
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-id');
+                    const productName = this.getAttribute('data-name');
+                    const productPrice = parseFloat(this.getAttribute('data-price'));
+                    const quantitySelect = document.getElementById(`quantity_${productId}`);
+                    const quantity = parseFloat(quantitySelect.value);
+
+                    if (quantity === 0) {
+                        alert("يرجى اختيار كمية صحيحة.");
+                        return;
+                    }
+
+                    const cartItem = {
+                        id: productId,
+                        name: productName,
+                        price: productPrice,
+                        quantity: quantity,
+                        totalPrice: productPrice * quantity
+                    };
+
+                    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                    cart.push(cartItem);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    alert("تمت إضافة المنتج إلى السلة.");
+                });
+            });
+        }
+    </script>
+</body>
+</html>
